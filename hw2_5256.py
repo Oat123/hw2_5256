@@ -150,6 +150,90 @@ yellow_jan_PULocationID = df['PULocationID'].unique()
 np.sort(yellow_jan_PULocationID)
 
 
+# In[13]:
+
+
+import boto3
+s3 = boto3.client('s3')
+sum = 0
+for i in range(1,6):
+    resp = s3.select_object_content(
+        Bucket='oat-cs650-5256',
+        Key='yellow_tripdata_2017-01.parquet',
+        
+        ExpressionType='SQL',
+        
+        Expression=f"SELECT COUNT(payment_type) FROM s3object s WHERE payment_type= {i}",
+        InputSerialization={'Parquet': {}},
+        OutputSerialization = {'CSV': {}},
+    )
+    
+    for event in resp['Payload']:
+        if 'Records' in event:
+            records = event['Records']['Payload'].decode('utf-8')
+            sum = sum + int(records)
+            print(f"จำนวน yellow taxi ที่มี payment_type={i} เท่ากับ {records}")
+            print(f"มี yellow taxi รวมทั้งสิ้น {sum} คัน")
+
+
+# In[29]:
+
+
+import boto3
+
+s3 = boto3.client('s3')
+
+def cal_rides_each_month(month):
+    sum = 0 
+    for type in range(1,6):
+        resp=s3.select_object_content(
+        Bucket='oat-cs650-5256',
+        Key=f'yellow_tripdata_2017-0{month}.parquet',
+        ExpressionType='SQL',
+        Expression=f"SELECT COUNT(payment_type) FROM s3object s WHERE payment _type={type}",
+        InputSerialization={'Parquet':{}},
+        OutputSerialization={'CSV':{}},
+    )
+
+    for event in resp['Payload']:
+        if 'Records' in event:
+            records = event['Records']['Payload'].decode('utf-8')
+        
+            records = int(records)
+            sum = sum + records
+            if type==1:
+                type1.append(records)
+            elif type==2:
+                type2.append(records)
+            elif type==3:
+                type3.append(records)
+            elif type==4:
+                type4.append(records)
+            else:
+                type5.append(records)
+            
+print(f"จำนวน yellow taxi rides เดือน ที่มี payment_type={type} เท่ากับ {records}")
+print(f"rides เดือน มี yellow taxi rides รวมทั้งสิ้น {sum} เที่ยว")
+print()
+
+
+# In[31]:
+
+
+data = {
+"month": ['Jan', 'Feb', 'Mar', 'April', 'May'],
+'payment type 1': type1,
+'payment type 2': type2,
+'payment type 3': type3,
+'payment type 4': type4,
+'payment type 5': type5,
+'sum': sum_rides
+}
+
+hw_item3 = pd.DataFrame(data)
+hw_item3
+
+
 # In[ ]:
 
 
